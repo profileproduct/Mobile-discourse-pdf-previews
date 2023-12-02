@@ -7,6 +7,8 @@ export default {
   name: "pdf-previews",
   initialize(container) {
     withPluginApi("0.8.41", (api) => {
+      // The mobile view check has been removed
+
       try {
         const previewModeSetting = settings.preview_mode;
         const newTabIcon = () => {
@@ -60,16 +62,24 @@ export default {
               const startsWithWhitespace = /^\s+/;
               const fileName = pdf.innerText;
 
+              // Open the pdf in a new tab if either the global setting is
+              // "New Tab" or if the pdf description starts with a whitespace
+              // otherwise, render the preview inline in the post
               const renderMode =
                 previewModeSetting === "New Tab" ||
                 startsWithWhitespace.test(fileName)
                   ? "New Tab"
                   : "Inline";
 
+              // We don't need the space anymore.
               pdf.innerText = pdf.innerText.trim();
 
+              // Handle preview type
               const preview = setUpPreviewType(pdf, renderMode);
 
+              // The pdf is set to Content-Disposition: attachment; filename="filename.pdf"
+              // on the server. This means we can't just use the href as the
+              // src for the pdf preview elements.
               const httpRequest = new XMLHttpRequest();
               httpRequest.open("GET", pdf.href);
               httpRequest.responseType = "blob";
@@ -103,6 +113,7 @@ export default {
           }
         );
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error(
           "There's an issue in the pdf previews theme component",
           error
